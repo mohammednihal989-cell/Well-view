@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback - WellView{% endblock %}
+
+{% block content %}
+<section class="workspace-header">
+    <div>
+        <div class="eyebrow"><i class="bi bi-chat-dots"></i> Support loop</div>
+        <h1>Feedback</h1>
+        <p>Send notes to the admin team and review replies in the same thread.</p>
+    </div>
+</section>
+
+<section class="feedback-layout">
+    <form method="post" action="{{ url_for('feedback') }}" class="feedback-form">
+        <label for="message" class="form-label">Message</label>
+        <textarea id="message" name="message" rows="6" class="form-control" placeholder="Write your feedback or support request..." required></textarea>
+        <button class="btn btn-main"><i class="bi bi-send"></i> Submit feedback</button>
+    </form>
+
+    <div class="feedback-thread">
+        <h2>Previous feedback</h2>
+        {% if entries %}
+            {% for e in entries %}
+                <article class="thread-item">
+                    <div class="thread-meta">
+                        <strong>You</strong>
+                        <span>{{ e.created_at[:19].replace('T',' ') }}</span>
+                    </div>
+                    <p>{{ e.message }}</p>
+                    {% if e.reply %}
+                    <div class="admin-reply">
+                        <div class="thread-meta">
+                            <strong>Reply from {{ e.reply.by }}</strong>
+                            <span>{{ e.reply.replied_at[:19].replace('T',' ') }}</span>
+                        </div>
+                        <p>{{ e.reply.message }}</p>
+                    </div>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        {% else %}
+            <div class="empty-inline">No feedback submitted yet.</div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

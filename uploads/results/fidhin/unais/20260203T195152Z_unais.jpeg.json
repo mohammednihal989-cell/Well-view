@@ -1,0 +1,63 @@
+{
+  "original_filename": "unais.jpeg",
+  "patient_name": "Unais",
+  "saved_at": "2026-02-03T19:51:52.462612Z",
+  "extracted": {
+    "Hemoglobin": 12.6,
+    "WBC": 8800,
+    "RBC": 4.4,
+    "Platelet": 169000,
+    "Sugar": 118,
+    "Cholesterol": 208
+  },
+  "analysis": {
+    "Hemoglobin": {
+      "value": 12.6,
+      "status": "Normal",
+      "normal": [
+        12,
+        16
+      ]
+    },
+    "WBC": {
+      "value": 8800,
+      "status": "Normal",
+      "normal": [
+        4000,
+        11000
+      ]
+    },
+    "RBC": {
+      "value": 4.4,
+      "status": "Normal",
+      "normal": [
+        4.0,
+        5.5
+      ]
+    },
+    "Platelet": {
+      "value": 169000,
+      "status": "Normal",
+      "normal": [
+        150000,
+        450000
+      ]
+    },
+    "Sugar": {
+      "value": 118,
+      "status": "Normal",
+      "normal": [
+        70,
+        140
+      ]
+    },
+    "Cholesterol": {
+      "value": 208,
+      "status": "High",
+      "normal": [
+        0,
+        200
+      ]
+    }
+  }
+}

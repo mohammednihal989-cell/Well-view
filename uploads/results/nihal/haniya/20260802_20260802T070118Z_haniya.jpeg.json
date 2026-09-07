@@ -1,0 +1,64 @@
+{
+  "original_filename": "haniya.jpeg",
+  "patient_name": "Haniya",
+  "saved_at": "2026-08-02T07:01:18.858917Z",
+  "checkup_date": null,
+  "extracted": {
+    "Hemoglobin": 15.0,
+    "WBC": 8857,
+    "RBC": 5.2,
+    "Platelet": 197152,
+    "Sugar": 78,
+    "Cholesterol": 127
+  },
+  "analysis": {
+    "Hemoglobin": {
+      "value": 15.0,
+      "status": "Normal",
+      "normal": [
+        12.0,
+        17.5
+      ]
+    },
+    "WBC": {
+      "value": 8857,
+      "status": "Normal",
+      "normal": [
+        4000,
+        11000
+      ]
+    },
+    "RBC": {
+      "value": 5.2,
+      "status": "Normal",
+      "normal": [
+        4.0,
+        5.9
+      ]
+    },
+    "Platelet": {
+      "value": 197152,
+      "status": "Normal",
+      "normal": [
+        150000,
+        450000
+      ]
+    },
+    "Sugar": {
+      "value": 78,
+      "status": "Normal",
+      "normal": [
+        70,
+        99
+      ]
+    },
+    "Cholesterol": {
+      "value": 127,
+      "status": "Normal",
+      "normal": [
+        0,
+        200
+      ]
+    }
+  }
+}

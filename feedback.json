@@ -1,0 +1,176 @@
+[
+  {
+    "id": "75496C19",
+    "user": "user1",
+    "message": "This is a test feedback",
+    "created_at": "2026-08-24T17:02:34.320246Z",
+    "seen_by_admin": true,
+    "user_seen": true
+  },
+  {
+    "id": "9F051BC2",
+    "user": "user1",
+    "message": "This is a test feedback",
+    "created_at": "2026-08-24T16:59:13.520588Z",
+    "seen_by_admin": true,
+    "user_seen": true
+  },
+  {
+    "id": "ABA5321B",
+    "user": "user1",
+    "message": "This is a test feedback",
+    "created_at": "2026-06-02T15:09:43.368843Z",
+    "seen_by_admin": true,
+    "user_seen": true
+  },
+  {
+    "id": "F90B17C3",
+    "user": "user1",
+    "message": "This is a test feedback",
+    "created_at": "2026-06-02T15:08:56.755562Z",
+    "seen_by_admin": true,
+    "user_seen": true
+  },
+  {
+    "id": "59D445A0",
+    "user": "nihal",
+    "message": "ninga vishayada",
+    "created_at": "2026-03-17T18:12:54.570112Z",
+    "seen_by_admin": true,
+    "user_seen": true
+  },
+  {
+    "id": "E322AD4C",
+    "user": "nihal",
+    "message": "ninga vishayada",
+    "created_at": "2026-03-17T18:12:51.969932Z",
+    "seen_by_admin": true,
+    "user_seen": true
+  },
+  {
+    "id": "503ADBB2",
+    "user": "nihal",
+    "message": "nnammall orru sambavvam annlle",
+    "created_at": "2026-03-17T18:12:39.576066Z",
+    "seen_by_admin": true,
+    "user_seen": true
+  },
+  {
+    "id": "EBC3B78E",
+    "user": "nihal",
+    "message": "qwkjdh'qolk/d,m",
+    "created_at": "2026-03-17T18:12:19.717886Z",
+    "seen_by_admin": true,
+    "user_seen": true
+  },
+  {
+    "id": "32DC3A7F",
+    "user": "Team02",
+    "message": "nice",
+    "created_at": "2026-03-17T18:09:55.876565Z",
+    "seen_by_admin": true,
+    "user_seen": true
+  },
+  {
+    "id": "C9BDE0C8",
+    "user": "test_integration",
+    "message": "Integration test message",
+    "created_at": "2026-03-17T18:06:10.765269Z",
+    "seen_by_admin": true,
+    "user_seen": false,
+    "reply": {
+      "message": "Thanks, got it",
+      "replied_at": "2026-03-17T18:06:14.900328Z",
+      "by": "Team02"
+    }
+  },
+  {
+    "id": "A0D4B18A",
+    "user": "nihal",
+    "message": "kytfkbnm",
+    "created_at": "2026-03-17T17:22:45.492583Z",
+    "seen_by_admin": true
+  },
+  {
+    "id": "721CAA89",
+    "user": "nihal",
+    "message": "kytfkbnm",
+    "created_at": "2026-03-17T17:22:43.172524Z",
+    "seen_by_admin": true
+  },
+  {
+    "id": "398373BB",
+    "user": "nihal",
+    "message": "kytfkbnm",
+    "created_at": "2026-03-17T17:22:31.345048Z",
+    "seen_by_admin": true
+  },
+  {
+    "id": "E07951D8",
+    "user": "test",
+    "message": "yes this website looks good",
+    "created_at": "2026-02-28T09:26:33.700725Z",
+    "seen_by_admin": true
+  },
+  {
+    "id": "A8AE33F0",
+    "user": "Team02",
+    "message": "yes",
+    "created_at": "2026-02-28T09:25:40.551399Z",
+    "seen_by_admin": true,
+    "reply": {
+      "message": "ohh",
+      "replied_at": "2026-03-17T18:10:22.255078Z",
+      "by": "Team02"
+    },
+    "user_seen": true
+  },
+  {
+    "id": "9BB065CC",
+    "user": "nihal",
+    "message": "simple but humble",
+    "created_at": "2026-02-28T09:24:57.803814Z",
+    "seen_by_admin": true
+  },
+  {
+    "id": "949DCFA8",
+    "user": "unais",
+    "message": "simple to use",
+    "created_at": "2026-02-28T09:08:33.566444Z",
+    "seen_by_admin": true
+  },
+  {
+    "id": "01483C00",
+    "user": "nihal",
+    "message": "idh kollaam",
+    "created_at": "2026-02-28T09:07:45.955871Z",
+    "seen_by_admin": true,
+    "reply": {
+      "message": "thank you sir",
+      "replied_at": "2026-03-17T18:11:23.325256Z",
+      "by": "Team02"
+    },
+    "user_seen": true
+  },
+  {
+    "id": "727B8A03",
+    "user": "admin_test",
+    "message": "This is a test feedback",
+    "created_at": "2026-02-28T09:06:21.908529Z",
+    "seen_by_admin": true
+  },
+  {
+    "id": "6F0CC35E",
+    "user": "boss",
+    "message": "so intresting",
+    "created_at": "2026-02-26T02:37:45.058671Z",
+    "seen_by_admin": true
+  },
+  {
+    "id": "31AD812E",
+    "user": "testfeedback",
+    "message": "Great app!",
+    "created_at": "2026-02-26T02:35:09.039585Z",
+    "seen_by_admin": true
+  }
+]

@@ -1,0 +1,64 @@
+{
+  "original_filename": "Sample_Comprehensive_Lab_Report.pdf",
+  "patient_name": "Jane Doe (Sample Report)",
+  "saved_at": "2026-08-24T17:02:07.546306Z",
+  "checkup_date": "2026-08-24",
+  "extracted": {
+    "Hemoglobin": 11.2,
+    "WBC": 8200,
+    "RBC": 4.6,
+    "Platelet": 240000,
+    "Sugar": 115,
+    "Cholesterol": 218
+  },
+  "analysis": {
+    "Hemoglobin": {
+      "value": 11.2,
+      "status": "Low",
+      "normal": [
+        12.0,
+        17.5
+      ]
+    },
+    "WBC": {
+      "value": 8200,
+      "status": "Normal",
+      "normal": [
+        4000,
+        11000
+      ]
+    },
+    "RBC": {
+      "value": 4.6,
+      "status": "Normal",
+      "normal": [
+        4.0,
+        5.9
+      ]
+    },
+    "Platelet": {
+      "value": 240000,
+      "status": "Normal",
+      "normal": [
+        150000,
+        450000
+      ]
+    },
+    "Sugar": {
+      "value": 115,
+      "status": "High",
+      "normal": [
+        70,
+        99
+      ]
+    },
+    "Cholesterol": {
+      "value": 218,
+      "status": "High",
+      "normal": [
+        0,
+        200
+      ]
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "original_filename": "nihal_1.jpg",
+  "patient_name": "Nihal_1",
+  "saved_at": "2026-02-24T20:12:26.069098Z",
+  "checkup_date": null,
+  "extracted": {
+    "Hemoglobin": 12.2,
+    "WBC": 6600,
+    "RBC": 4.3,
+    "Platelet": 158000,
+    "Sugar": 96,
+    "Cholesterol": 186
+  },
+  "analysis": {
+    "Hemoglobin": {
+      "value": 12.2,
+      "status": "Normal",
+      "normal": [
+        12,
+        16
+      ]
+    },
+    "WBC": {
+      "value": 6600,
+      "status": "Normal",
+      "normal": [
+        4000,
+        11000
+      ]
+    },
+    "RBC": {
+      "value": 4.3,
+      "status": "Normal",
+      "normal": [
+        4.0,
+        5.5
+      ]
+    },
+    "Platelet": {
+      "value": 158000,
+      "status": "Normal",
+      "normal": [
+        150000,
+        450000
+      ]
+    },
+    "Sugar": {
+      "value": 96,
+      "status": "Normal",
+      "normal": [
+        70,
+        140
+      ]
+    },
+    "Cholesterol": {
+      "value": 186,
+      "status": "Normal",
+      "normal": [
+        0,
+        200
+      ]
+    }
+  }
+}

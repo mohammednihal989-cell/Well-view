@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Report - WellView{% endblock %}
+
+{% block content %}
+<section class="workspace-header">
+    <div>
+        <div class="eyebrow"><i class="bi bi-cloud-upload"></i> New analysis</div>
+        <h1>Upload a health report</h1>
+        <p>Start with a PDF or image, or capture a photo of your report directly using your camera. WellView extracts parameters and compares trends.</p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('saved_results') }}" class="btn btn-outline-app"><i class="bi bi-archive"></i> Saved reports</a>
+        <a href="{{ url_for('compare') }}" class="btn btn-outline-app"><i class="bi bi-bar-chart-line"></i> Compare</a>
+    </div>
+</section>
+
+<section class="upload-layout">
+    <div class="upload-dropzone">
+        <i class="bi bi-file-earmark-medical upload-symbol"></i>
+        <h2>Select report file</h2>
+        <p class="mb-3">Supported formats: PDF, JPG, JPEG, PNG, GIF, BMP, TIFF.</p>
+        
+        <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" class="w-100" id="uploadForm">
+            <input id="report" type="file" name="report" class="form-control mb-3" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.tiff" required>
+            
+            <div class="d-flex gap-2 justify-content-center flex-wrap w-100 mb-4">
+                <button type="submit" class="btn btn-main"><i class="bi bi-lightning-charge"></i> Upload and analyze</button>
+                <button type="button" id="openCameraBtn" class="btn btn-outline-app"><i class="bi bi-camera"></i> Use Camera</button>
+            </div>
+        </form>
+
+        <div class="p-3 rounded-4 bg-primary bg-opacity-10 border border-primary border-opacity-25 w-100 text-center">
+            <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                <i class="bi bi-stars text-primary fs-5"></i>
+                <h6 class="fw-bold text-primary mb-0">Don't have a report ready?</h6>
+            </div>
+            <p class="small text-secondary mb-3">Instantly test WellView's biomarker engine with our pre-populated sample laboratory report.</p>
+            <a href="{{ url_for('upload_sample') }}" class="btn btn-sm btn-main px-4 py-2">
+                <i class="bi bi-play-circle me-1"></i> Try Sample Lab Report
+            </a>
+        </div>
+        
+        <div id="cameraStatus" class="w-100 mt-2 d-none">
+            <div class="alert alert-success p-2 text-center" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>Photo captured successfully! <strong>camera_capture.jpg</strong> is ready for analysis.
+            </div>
+        </div>
+    </div>
+
+    <aside class="side-panel">
+        <div class="side-panel-row">
+            <i class="bi bi-lock"></i>
+            <div><strong>Private by account</strong><span>Your saved history stays tied to your sign-in.</span></div>
+        </div>
+        <div class="side-panel-row">
+            <i class="bi bi-activity"></i>
+            <div><strong>Readable output</strong><span>Normal, high, and low markers are grouped clearly.</span></div>
+        </div>
+        <div class="side-panel-row">
+            <i class="bi bi-clock-history"></i>
+            <div><strong>Built for follow-up</strong><span>Compare older reports with new uploads whenever needed.</span></div>
+        </div>
+    </aside>
+</section>
+
+<!-- Modern Glassmorphic Camera Modal -->
+<div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content camera-modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cameraModalLabel"><i class="bi bi-camera"></i> Live Report Capture</h5>
+                <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center position-relative">
+                <div class="camera-stream-wrapper">
+                    <video id="webcam" autoplay playsinline class="rounded-3 shadow"></video>
+                    <canvas id="photoCanvas" class="d-none rounded-3 shadow"></canvas>
+                    
+                    <!-- Scanning reticle overlay -->
+                    <div class="camera-reticle" id="reticle">
+                        <div class="reticle-corner tl"></div>
+                        <div class="reticle-corner tr"></div>
+                        <div class="reticle-corner bl"></div>
+                        <div class="reticle-corner br"></div>
+                        <span class="pulse-dot">REC</span>
+                    </div>
+                </div>
+                <div class="camera-error d-none alert alert-danger mt-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Camera permission was denied, or camera is not available. Please ensure access is allowed.
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center gap-2">
+                <button type="button" id="captureBtn" class="btn btn-main"><i class="bi bi-camera-fill"></i> Capture Snapshot</button>
+                <button type="button" id="retakeBtn" class="btn btn-outline-app d-none"><i class="bi bi-arrow-counterclockwise"></i> Retake</button>
+                <button type="button" id="usePhotoBtn" class="btn btn-main btn-success-grad d-none"><i class="bi bi-check-lg"></i> Use Snap</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .camera-modal-content {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 20px;
+        box-shadow: var(--shadow-xl);
+        color: var(--text-1);
+        overflow: hidden;
+    }
+    [data-theme="dark"] .camera-modal-content {
+        background: rgba(17, 24, 39, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--text-1);
+    }
+    .btn-close-custom {
+        filter: none;
+        opacity: 0.7;
+        transition: opacity var(--transition-fast);
+    }
+    [data-theme="dark"] .btn-close-custom {
+        filter: invert(1) grayscale(1) brightness(2);
+    }
+    .btn-close-custom:hover {
+        opacity: 1;
+    }
+    .camera-stream-wrapper {
+        position: relative;
+        width: 100%;
+        max-height: 480px;
+        aspect-ratio: 16/9;
+        background: #000;
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #webcam, #photoCanvas {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .camera-reticle {
+        position: absolute;
+        inset: 30px;
+        border: 1px dashed rgba(255, 255, 255, 0.25);
+        pointer-events: none;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+        padding: 10px;
+    }
+    .reticle-corner {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 3px solid var(--primary-alt);
+    }
+    .reticle-corner.tl { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+    .reticle-corner.tr { top: 0; right: 0; border-left: 0; border-bottom: 0; }
+    .reticle-corner.bl { bottom: 0; left: 0; border-right: 0; border-top: 0; }
+    .reticle-corner.br { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+    
+    .pulse-dot {
+        color: #ff3b30;
+        font-weight: 800;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .pulse-dot::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        background: #ff3b30;
+        border-radius: 50%;
+        animation: recPulse 1.2s infinite alternate;
+    }
+    @keyframes recPulse {
+        from { opacity: 0.3; }
+        to { opacity: 1; }
+    }
+    .btn-success-grad {
+        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+        border: none;
+        color: white;
+        border-radius: 12px;
+        font-weight: 600;
+        padding: 12px 28px;
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
+        transition: all var(--transition-base);
+    }
+    .btn-success-grad:hover {
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(22, 163, 74, 0.35);
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const openCameraBtn = document.getElementById('openCameraBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const usePhotoBtn = document.getElementById('usePhotoBtn');
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('photoCanvas');
+        const cameraError = document.querySelector('.camera-error');
+        const reticle = document.getElementById('reticle');
+        const cameraStatus = document.getElementById('cameraStatus');
+        const reportInput = document.getElementById('report');
+        const cameraModalEl = document.getElementById('cameraModal');
+        
+        let stream = null;
+        let cameraModal = null;
+        
+        if (typeof bootstrap !== 'undefined') {
+            cameraModal = new bootstrap.Modal(cameraModalEl);
+        }
+
+        openCameraBtn.addEventListener('click', async function() {
+            if (cameraModal) cameraModal.show();
+            
+            // Reset modal state
+            video.classList.remove('d-none');
+            canvas.classList.add('d-none');
+            reticle.classList.remove('d-none');
+            captureBtn.classList.remove('d-none');
+            retakeBtn.classList.add('d-none');
+            usePhotoBtn.classList.add('d-none');
+            cameraError.classList.add('d-none');
+
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Camera Access Error: ", err);
+                video.classList.add('d-none');
+                reticle.classList.add('d-none');
+                captureBtn.classList.add('d-none');
+                cameraError.classList.remove('d-none');
+            }
+        });
+
+        // Stop video tracks when modal is hidden
+        cameraModalEl.addEventListener('hidden.bs.modal', function () {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+        });
+
+        // Capture photo
+        captureBtn.addEventListener('click', function() {
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            video.classList.add('d-none');
+            canvas.classList.remove('d-none');
+            reticle.classList.add('d-none');
+            
+            captureBtn.classList.add('d-none');
+            retakeBtn.classList.remove('d-none');
+            usePhotoBtn.classList.remove('d-none');
+        });
+
+        // Retake photo
+        retakeBtn.addEventListener('click', function() {
+            video.classList.remove('d-none');
+            canvas.classList.add('d-none');
+            reticle.classList.remove('d-none');
+            
+            captureBtn.classList.remove('d-none');
+            retakeBtn.classList.add('d-none');
+            usePhotoBtn.classList.add('d-none');
+        });
+
+        // Use photo
+        usePhotoBtn.addEventListener('click', function() {
+            canvas.toBlob(function(blob) {
+                const file = new File([blob], "camera_capture.jpg", { type: "image/jpeg" });
+                
+                // Use DataTransfer to programmatically assign the file to input
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                reportInput.files = dataTransfer.files;
+                
+                // Update HTML display
+                cameraStatus.classList.remove('d-none');
+                
+                // Hide modal
+                if (cameraModal) cameraModal.hide();
+            }, 'image/jpeg', 0.95);
+        });
+    });
+</script>
+{% endblock %}

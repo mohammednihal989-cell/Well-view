@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Reports - WellView{% endblock %}
+
+{% block content %}
+<section class="workspace-header">
+    <div>
+        <div class="eyebrow"><i class="bi bi-bar-chart-line"></i> Trend review</div>
+        <h1>Compare reports</h1>
+        <p>Select at least two saved reports to compare values, changes, suggestions, and trend charts.</p>
+    </div>
+    <form class="toolbar toolbar-wide" method="get">
+        <div>
+            <label class="form-label" for="from">From</label>
+            <input id="from" type="date" name="from" class="form-control form-control-sm" value="{{ from_date or '' }}">
+        </div>
+        <div>
+            <label class="form-label" for="to">To</label>
+            <input id="to" type="date" name="to" class="form-control form-control-sm" value="{{ to_date or '' }}">
+        </div>
+        <div>
+            <label class="form-label" for="order">Sort</label>
+            <select id="order" name="order" class="form-select form-select-sm">
+                <option value="desc" {% if order != 'asc' %}selected{% endif %}>Newest first</option>
+                <option value="asc" {% if order == 'asc' %}selected{% endif %}>Oldest first</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-main btn-sm"><i class="bi bi-funnel"></i> Apply</button>
+        <a href="{{ url_for('compare') }}" class="btn btn-outline-app btn-sm"><i class="bi bi-x-circle"></i> Clear</a>
+    </form>
+</section>
+
+{% if history %}
+<form method="post" action="{{ url_for('compare_view') }}">
+    {% set grouped = {} %}
+    {% for item in history %}
+        {% set report_name = item.report_name %}
+        {% if report_name not in grouped %}
+            {% set _ = grouped.update({report_name: []}) %}
+        {% endif %}
+        {% set _ = grouped[report_name].append(item) %}
+    {% endfor %}
+
+    <section class="library-list compare-picker">
+        {% for patient_folder in grouped.keys() | sort(reverse=true) %}
+        {% set patient_name = grouped[patient_folder][0].patient_name %}
+        <div class="library-group">
+            <div class="library-head">
+                <span><i class="bi bi-person-vcard"></i> {{ patient_name }}</span>
+                <span>Choose reports</span>
+            </div>
+            <div class="library-items">
+                {% for item in grouped[patient_folder] | sort(attribute='mtime', reverse=true) %}
+                <label class="library-item selectable">
+                    <input type="checkbox" name="reports" value="{{ item.name }}" class="form-check-input">
+                    <div class="file-icon"><i class="bi bi-file-earmark-text"></i></div>
+                    <div class="item-main">
+                        <strong>{{ item.filename }}</strong>
+                        <span>{{ item.saved_at }}</span>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+
+    <div class="sticky-action-bar">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-app"><i class="bi bi-arrow-left"></i> Back</a>
+        <button type="submit" class="btn btn-main"><i class="bi bi-arrow-left-right"></i> Compare selected</button>
+    </div>
+</form>
+{% else %}
+    <section class="empty-state">
+        <i class="bi bi-bar-chart"></i>
+        <h2>No reports to compare</h2>
+        <p>Upload two or more reports first, then come back to compare changes.</p>
+        <a href="{{ url_for('upload') }}" class="btn btn-main"><i class="bi bi-cloud-upload"></i> Upload report</a>
+    </section>
+{% endif %}
+{% endblock %}

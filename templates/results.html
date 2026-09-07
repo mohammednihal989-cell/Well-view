@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+
+{% block title %}Report Results - WellView{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .range-meter-container {
+        width: 140px;
+        height: 8px;
+        background: var(--line, #e2e8f0);
+        border-radius: 999px;
+        position: relative;
+        overflow: hidden;
+    }
+    .range-meter-bar {
+        height: 100%;
+        border-radius: 999px;
+        transition: width 0.3s ease;
+    }
+    .range-meter-point {
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .filter-pill {
+        border-radius: 20px;
+        padding: 0.35rem 0.85rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid var(--line, #e2e8f0);
+        background: var(--bg-card, #ffffff);
+        color: var(--text-2, #64748b);
+    }
+    .filter-pill.active {
+        background: var(--primary, #0066ff);
+        color: #ffffff;
+        border-color: var(--primary, #0066ff);
+        box-shadow: 0 2px 8px rgba(0, 102, 255, 0.25);
+    }
+    @media print {
+        .top-nav, .app-footer, .header-actions, .sticky-action-bar, .filter-toolbar, .no-print {
+            display: none !important;
+        }
+        .app-main { padding: 0 !important; }
+        .result-panel { box-shadow: none !important; border: 1px solid #ccc !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="workspace-header">
+    <div>
+        <div class="eyebrow"><i class="bi bi-clipboard2-pulse"></i> Analysis result</div>
+        <h1>Report results</h1>
+        <p>Review extracted values, normal ranges, visual indicator meters, and clinical insights.</p>
+    </div>
+    <div class="header-actions">
+        <button onclick="window.print()" class="btn btn-outline-app" title="Export or print report summary">
+            <i class="bi bi-printer me-1"></i> Export PDF
+        </button>
+        <a href="{{ url_for('upload') }}" class="btn btn-main"><i class="bi bi-cloud-upload"></i> Upload another</a>
+        <a href="{{ url_for('saved_results') }}" class="btn btn-outline-app"><i class="bi bi-archive"></i> Saved</a>
+    </div>
+</section>
+
+{% if patient_name %}
+<div class="patient-banner d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-person-circle fs-4 text-primary"></i>
+        <div>
+            <span class="text-muted extra-small d-block text-uppercase tracking-wider">Patient Name</span>
+            <strong class="fs-5">{{ patient_name }}</strong>
+        </div>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+            <i class="bi bi-file-earmark-medical me-1"></i> Verified Lab Extract
+        </span>
+    </div>
+</div>
+{% endif %}
+
+{% if not data %}
+<section class="empty-state">
+    <i class="bi bi-exclamation-triangle"></i>
+    <h2>No analysis data available</h2>
+    <p>Please upload a valid report or try our sample report.</p>
+    <div class="d-flex gap-2 justify-content-center mt-3">
+        <a href="{{ url_for('upload') }}" class="btn btn-main"><i class="bi bi-cloud-upload"></i> Upload report</a>
+        <a href="{{ url_for('upload_sample') }}" class="btn btn-outline-app"><i class="bi bi-lightning-charge"></i> Load Sample Report</a>
+    </div>
+</section>
+{% endif %}
+
+{% if data %}
+<!-- Search & Filter Controls -->
+<div class="filter-toolbar mb-3 p-3 rounded-4 bg-body-tertiary border d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center gap-2">
+        <span class="fw-semibold small text-secondary me-1"><i class="bi bi-funnel me-1"></i> Filter Status:</span>
+        <button type="button" class="filter-pill active" onclick="filterTable('all', this)">All ({{ data | length }})</button>
+        {% set abnormal_count = [] %}
+        {% for test, d in data.items() %}
+            {% if d.status != 'Normal' %}{% set _ = abnormal_count.append(1) %}{% endif %}
+        {% endfor %}
+        <button type="button" class="filter-pill" onclick="filterTable('abnormal', this)">
+            <i class="bi bi-exclamation-circle me-1 text-warning"></i> Out of Range ({{ abnormal_count | length }})
+        </button>
+        <button type="button" class="filter-pill" onclick="filterTable('Normal', this)">
+            <i class="bi bi-check-circle me-1 text-success"></i> Normal ({{ (data | length) - (abnormal_count | length) }})
+        </button>
+    </div>
+    <div class="position-relative" style="min-width: 240px;">
+        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+        <input type="text" id="biomarkerSearch" class="form-input ps-5 py-1-5 fs-6" placeholder="Search parameter..." onkeyup="searchBiomarkers()">
+    </div>
+</div>
+
+<section class="result-grid">
+    <div class="result-panel result-table-panel">
+        <div class="panel-title d-flex justify-content-between align-items-center">
+            <h2>Biomarker Parameters</h2>
+            <span class="text-muted small">Click any row for clinical insights</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table app-table align-middle mb-0" id="biomarkerTable">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                        <th>Normal range</th>
+                        <th>Range Meter</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for test, d in data.items() %}
+                    <tr class="clickable-row biomarker-row" data-status="{{ d.status }}" data-name="{{ test | lower }}" onclick="openParameterModal('{{ test }}', '{{ d.value }}', '{% if d.normal[0] is not none %}{{ d.normal[0] }} - {{ d.normal[1] }}{% else %}-{% endif %}', '{{ d.status }}')">
+                        <td><strong><i class="bi bi-info-circle text-primary me-2"></i>{{ test }}</strong></td>
+                        <td><strong>{{ d.value }}</strong></td>
+                        <td>{% if d.normal[0] is not none %}{{ d.normal[0] }} - {{ d.normal[1] }}{% else %}-{% endif %}</td>
+                        <td>
+                            {% if d.normal[0] is not none and d.normal[1] is not none %}
+                                {% set min_val = d.normal[0] %}
+                                {% set max_val = d.normal[1] %}
+                                {% set range_span = max_val - min_val %}
+                                {% if range_span > 0 %}
+                                    {% set pct = ((d.value - min_val) / range_span * 100) %}
+                                    {% set pct_clamped = 100 if pct > 100 else (0 if pct < 0 else pct) %}
+                                    <div class="range-meter-container" title="Position: {{ pct_clamped | round(1) }}%">
+                                        <div class="range-meter-bar {% if d.status == 'Normal' %}bg-success{% elif d.status == 'High' %}bg-danger{% else %}bg-warning{% endif %}" style="width: {{ pct_clamped }}%;"></div>
+                                        <div class="range-meter-point bg-dark" style="left: {{ pct_clamped }}%;"></div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge {% if d.status == 'Normal' %}status-normal{% elif d.status == 'High' %}status-high{% else %}status-low{% endif %}">
+                                {{ d.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-outline-app btn-sm py-1 px-2" title="View details">
+                                <i class="bi bi-eye"></i> Details
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="result-panel summary-panel">
+        <div class="panel-title">
+            <h2>Quick Read</h2>
+            <span>Overview</span>
+        </div>
+        <div class="summary-list">
+            {% for test, d in data.items() %}
+                {% if loop.index <= 6 %}
+                <div class="clickable-row p-2 rounded cursor-pointer d-flex justify-content-between align-items-center mb-1" onclick="openParameterModal('{{ test }}', '{{ d.value }}', '{% if d.normal[0] is not none %}{{ d.normal[0] }} - {{ d.normal[1] }}{% else %}-{% endif %}', '{{ d.status }}')">
+                    <span class="fw-medium">{{ test }}</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <strong>{{ d.value }}</strong>
+                        <em class="{% if d.status == 'Normal' %}ok{% elif d.status == 'High' %}high{% else %}low{% endif %}">{{ d.status }}</em>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="chart-grid mt-4">
+    <div class="result-panel">
+        <div class="panel-title"><h2>Hemoglobin & RBC</h2><span>Chart</span></div>
+        <div class="chart-container"><canvas id="chart1"></canvas></div>
+    </div>
+    <div class="result-panel">
+        <div class="panel-title"><h2>WBC & Platelet</h2><span>Chart</span></div>
+        <div class="chart-container"><canvas id="chart2"></canvas></div>
+    </div>
+    <div class="result-panel">
+        <div class="panel-title"><h2>Sugar & Cholesterol</h2><span>Chart</span></div>
+        <div class="chart-container"><canvas id="chart3"></canvas></div>
+    </div>
+</section>
+
+<!-- Modern Glassmorphism Parameter Details Modal Dialogue Box -->
+<div class="modal fade" id="parameterModal" tabindex="-1" aria-labelledby="paramModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content glass-modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title d-flex align-items-center gap-2" id="paramModalTitle">
+                    <i class="bi bi-activity text-primary fs-4"></i>
+                    <span id="paramModalName">Parameter Details</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <div class="d-flex justify-content-between align-items-center p-3 rounded-4 bg-body-tertiary mb-3 border">
+                    <div>
+                        <span class="text-muted small d-block">Reported Value</span>
+                        <span class="fs-2 fw-bold text-primary" id="paramModalValue">--</span>
+                    </div>
+                    <div class="text-end">
+                        <span class="text-muted small d-block">Reference Target Range</span>
+                        <span class="fs-5 fw-semibold text-secondary" id="paramModalRange">--</span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <span class="text-muted small d-block mb-1">Health Status Indicator</span>
+                        <div id="paramModalBadge">
+                            <span class="status-badge status-normal px-3 py-2 fs-6">Normal</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <span class="text-muted small d-block mb-1">Category Classification</span>
+                        <span id="paramModalCategory" class="badge bg-secondary-subtle text-secondary px-3 py-2 fs-6">General Biomarker</span>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-3 bg-opacity-10 bg-primary border border-primary border-opacity-25 mb-3">
+                    <h6 class="fw-bold mb-1 text-primary"><i class="bi bi-info-circle me-1"></i> What is <span id="paramModalDescName">this test</span>?</h6>
+                    <p class="small text-secondary mb-0" id="paramModalDescription">
+                        Biomarker parameter description.
+                    </p>
+                </div>
+
+                <div class="p-3 rounded-3 bg-body-tertiary border mb-3">
+                    <h6 class="fw-bold mb-1 text-secondary"><i class="bi bi-clipboard-pulse me-1"></i> Clinical Context & Impact</h6>
+                    <p class="small text-secondary mb-0" id="paramModalImpact">
+                        Clinical guidance text.
+                    </p>
+                </div>
+
+                <div class="p-3 rounded-3 bg-success-subtle border border-success-subtle">
+                    <h6 class="fw-bold mb-1 text-success"><i class="bi bi-lightbulb me-1"></i> Actionable Health Tip</h6>
+                    <p class="small text-dark mb-0" id="paramModalTips">
+                        Lifestyle and dietary recommendations.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-main w-100" data-bs-dismiss="modal">Close Insights</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="sticky-action-bar">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-app"><i class="bi bi-arrow-left"></i> Back</a>
+    <a href="{{ url_for('compare') }}" class="btn btn-main"><i class="bi bi-bar-chart-line"></i> Compare reports</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script>
+    const biomarkerClinicalInfo = {{ (biomarker_info | tojson | safe) if biomarker_info else '{}' }};
+
+    function filterTable(status, btn) {
+        document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const rows = document.querySelectorAll('.biomarker-row');
+        rows.forEach(row => {
+            const rowStatus = row.getAttribute('data-status');
+            if (status === 'all') {
+                row.style.display = '';
+            } else if (status === 'abnormal') {
+                row.style.display = (rowStatus !== 'Normal') ? '' : 'none';
+            } else {
+                row.style.display = (rowStatus === status) ? '' : 'none';
+            }
+        });
+    }
+
+    function searchBiomarkers() {
+        const query = document.getElementById('biomarkerSearch').value.toLowerCase();
+        const rows = document.querySelectorAll('.biomarker-row');
+        rows.forEach(row => {
+            const name = row.getAttribute('data-name');
+            if (name.includes(query)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    {% if data %}
+    const chartData = {
+        labels: [{% for test in data.keys() %}'{{ test }}',{% endfor %}],
+        values: [{% for test, d in data.items() %}{{ d.value }},{% endfor %}],
+        normalMin: [{% for test, d in data.items() %}{% if d.normal[0] is not none %}{{ d.normal[0] }}{% else %}0{% endif %},{% endfor %}],
+        normalMax: [{% for test, d in data.items() %}{% if d.normal[1] is not none %}{{ d.normal[1] }}{% else %}0{% endif %},{% endfor %}]
+    };
+
+    Chart.register(ChartDataLabels);
+
+    function makeChart(canvasId, labels) {
+        const valuesOrig = labels.map(function(l) {
+            const idx = chartData.labels.indexOf(l);
+            return idx !== -1 ? chartData.values[idx] : 0;
+        });
+        const nMinOrig = labels.map(function(l) {
+            const idx = chartData.labels.indexOf(l);
+            return idx !== -1 ? chartData.normalMin[idx] : 0;
+        });
+        const nMaxOrig = labels.map(function(l) {
+            const idx = chartData.labels.indexOf(l);
+            return idx !== -1 ? chartData.normalMax[idx] : 0;
+        });
+
+        const localMax = Math.max(...valuesOrig.map(Math.abs), ...nMaxOrig.map(Math.abs), 1);
+        const scale = localMax === 0 ? 1 : localMax / 100;
+        const values = valuesOrig.map(function(v) { return v / scale; });
+        const normalMin = nMinOrig.map(function(v) { return v / scale; });
+        const normalMax = nMaxOrig.map(function(v) { return v / scale; });
+        const css = getComputedStyle(document.documentElement);
+        const ctx = document.getElementById(canvasId).getContext("2d");
+
+        return new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "Actual value",
+                        data: values,
+                        backgroundColor: css.getPropertyValue("--primary").trim() || "#0066ff",
+                        borderRadius: 6
+                    },
+                    {
+                        label: "Normal min",
+                        data: normalMin,
+                        type: "line",
+                        borderColor: css.getPropertyValue("--ok-text").trim() || "#16835f",
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        tension: 0.2
+                    },
+                    {
+                        label: "Normal max",
+                        data: normalMax,
+                        type: "line",
+                        borderColor: css.getPropertyValue("--high-text").trim() || "#b42318",
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        tension: 0.2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: "bottom" },
+                    datalabels: {
+                        display: true,
+                        color: css.getPropertyValue("--text-1").trim() || "#18212f",
+                        anchor: "end",
+                        align: "end",
+                        formatter: function(value, ctx) {
+                            if (ctx.dataset.type === "line") return "";
+                            const original = valuesOrig[ctx.dataIndex];
+                            return Number.isFinite(original) ? (Math.round(original * 100) / 100).toString() : original;
+                        }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: css.getPropertyValue("--line").trim() || "#dde5e2" } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    makeChart("chart1", ["Hemoglobin", "RBC"]);
+    makeChart("chart2", ["WBC", "Platelet"]);
+    makeChart("chart3", ["Sugar", "Cholesterol"]);
+    {% endif %}
+
+    window.openParameterModal = function(name, value, range, status) {
+        document.getElementById('paramModalName').innerText = name;
+        document.getElementById('paramModalDescName').innerText = name;
+        document.getElementById('paramModalValue').innerText = value;
+        document.getElementById('paramModalRange').innerText = range;
+        
+        const badgeEl = document.getElementById('paramModalBadge');
+        const catEl = document.getElementById('paramModalCategory');
+        const descEl = document.getElementById('paramModalDescription');
+        const impactEl = document.getElementById('paramModalImpact');
+        const tipsEl = document.getElementById('paramModalTips');
+        
+        const info = biomarkerClinicalInfo[name] || {};
+        
+        catEl.innerText = info.category || 'General Biomarker';
+        descEl.innerText = info.description || 'Standard physiological lab biomarker.';
+        tipsEl.innerText = info.tips || 'Maintain balanced nutrition, stay active, and consult your primary care doctor.';
+        
+        let badgeClass = 'status-normal';
+        let impactText = 'This parameter falls within expected clinical limits.';
+        
+        if (status === 'High') {
+            badgeClass = 'status-high';
+            impactText = info.high_meaning || 'This value is higher than standard reference limits. Consider sharing this result with your physician.';
+        } else if (status === 'Low') {
+            badgeClass = 'status-low';
+            impactText = info.low_meaning || 'This value is below standard reference limits. Consult your physician regarding nutritional or dietary adjustments.';
+        } else {
+            impactText = info.description || 'This parameter is within standard clinical references.';
+        }
+        
+        badgeEl.innerHTML = `<span class="status-badge ${badgeClass} px-3 py-2 fs-6"><i class="bi bi-circle-fill me-1 small"></i>${status}</span>`;
+        impactEl.innerText = impactText;
+        
+        const modalEl = document.getElementById('parameterModal');
+        if (modalEl) {
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+    };
+</script>
+{% endblock %}

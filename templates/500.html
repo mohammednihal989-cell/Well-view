@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - WellView{% endblock %}
+
+{% block content %}
+<div class="py-5 text-center my-4">
+    <div class="display-1 fw-bold text-gradient mb-3" style="font-size: 5.5rem;">500</div>
+    <h1 class="h2 fw-bold mb-3">Internal Server Error</h1>
+    <p class="text-secondary lead mx-auto mb-4" style="max-width: 520px;">
+        An unexpected error occurred while processing your medical report. Our team has been notified.
+    </p>
+    <div class="d-flex justify-content-center gap-3">
+        <a href="{{ url_for('index') }}" class="btn btn-main"><i class="bi bi-house-door me-1"></i> Return Home</a>
+        <a href="{{ url_for('upload') }}" class="btn btn-outline-app"><i class="bi bi-cloud-upload me-1"></i> Upload Report</a>
+    </div>
+</div>
+{% endblock %}

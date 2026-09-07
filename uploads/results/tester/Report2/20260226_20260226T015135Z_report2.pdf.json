@@ -1,0 +1,41 @@
+{
+  "original_filename": "report2.pdf",
+  "patient_name": "Report2",
+  "saved_at": "2026-02-26T01:51:35.869049Z",
+  "checkup_date": null,
+  "extracted": {},
+  "analysis": {
+    "Hemoglobin": {
+      "value": 12.5,
+      "status": "Normal",
+      "normal": [
+        12,
+        16
+      ]
+    },
+    "WBC": {
+      "value": 12500,
+      "status": "High",
+      "normal": [
+        4000,
+        11000
+      ]
+    },
+    "Platelet": {
+      "value": 240000,
+      "status": "Normal",
+      "normal": [
+        150000,
+        450000
+      ]
+    },
+    "Sugar": {
+      "value": 125,
+      "status": "Normal",
+      "normal": [
+        70,
+        140
+      ]
+    }
+  }
+}

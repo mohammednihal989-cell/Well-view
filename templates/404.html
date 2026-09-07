@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - WellView{% endblock %}
+
+{% block content %}
+<div class="py-5 text-center my-4">
+    <div class="display-1 fw-bold text-gradient mb-3" style="font-size: 5.5rem;">404</div>
+    <h1 class="h2 fw-bold mb-3">Page Not Found</h1>
+    <p class="text-secondary lead mx-auto mb-4" style="max-width: 520px;">
+        The requested page or medical report resource could not be found. It may have been moved, renamed, or deleted.
+    </p>
+    <div class="d-flex justify-content-center gap-3">
+        <a href="{{ url_for('index') }}" class="btn btn-main"><i class="bi bi-house-door me-1"></i> Return Home</a>
+        <a href="{{ url_for('saved_results') }}" class="btn btn-outline-app"><i class="bi bi-archive me-1"></i> Saved Reports</a>
+    </div>
+</div>
+{% endblock %}
