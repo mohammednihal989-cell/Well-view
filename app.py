@@ -100,9 +100,33 @@ def user_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def _get_writable_file_path(filename: str) -> str:
+    """Returns a writable path for data files, falling back to /tmp in read-only environments like Vercel."""
+    target = os.path.join(os.path.dirname(__file__), filename)
+    try:
+        if os.path.exists(target):
+            with open(target, 'a', encoding='utf-8') as f:
+                pass
+            return target
+        else:
+            test_file = os.path.join(os.path.dirname(__file__), f'.test_write_{filename}')
+            with open(test_file, 'w', encoding='utf-8') as f:
+                f.write('test')
+            os.remove(test_file)
+            return target
+    except (OSError, IOError, PermissionError):
+        tmp_target = os.path.join('/tmp', filename)
+        if os.path.exists(target) and not os.path.exists(tmp_target):
+            try:
+                import shutil
+                shutil.copy2(target, tmp_target)
+            except Exception:
+                pass
+        return tmp_target
+
 # Simple user storage (file-based for this small app)
-USERS_FILE = os.path.join(os.path.dirname(__file__), 'users.json')
-FEEDBACK_FILE = os.path.join(os.path.dirname(__file__), 'feedback.json')
+USERS_FILE = _get_writable_file_path('users.json')
+FEEDBACK_FILE = _get_writable_file_path('feedback.json')
 
 
 def load_feedback() -> list:
@@ -127,8 +151,11 @@ def load_feedback() -> list:
 
 
 def save_feedback(entries: list):
-    with open(FEEDBACK_FILE, 'w', encoding='utf-8') as f:
-        json.dump(entries, f, indent=2)
+    try:
+        with open(FEEDBACK_FILE, 'w', encoding='utf-8') as f:
+            json.dump(entries, f, indent=2)
+    except Exception as e:
+        print(f"Error saving feedback: {e}")
 
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
@@ -150,8 +177,11 @@ def load_users() -> dict:
 
 
 def save_users(users: dict):
-    with open(USERS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(users, f, indent=2)
+    try:
+        with open(USERS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(users, f, indent=2)
+    except Exception as e:
+        print(f"Error saving users: {e}")
 
 
 def create_user(username: str, password: str, email: str = '', is_admin: bool = False) -> bool:
@@ -366,14 +396,22 @@ def inject_user():
 
 # Ensure uploads directory exists
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+try:
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+except (OSError, IOError, PermissionError):
+    UPLOAD_FOLDER = os.path.join('/tmp', 'uploads')
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Directory to store generated analysis results
 RESULTS_FOLDER = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
-if not os.path.exists(RESULTS_FOLDER):
-    os.makedirs(RESULTS_FOLDER)
+try:
+    if not os.path.exists(RESULTS_FOLDER):
+        os.makedirs(RESULTS_FOLDER, exist_ok=True)
+except (OSError, IOError, PermissionError):
+    RESULTS_FOLDER = os.path.join('/tmp', 'uploads', 'results')
+    os.makedirs(RESULTS_FOLDER, exist_ok=True)
 app.config['RESULTS_FOLDER'] = RESULTS_FOLDER
 
 

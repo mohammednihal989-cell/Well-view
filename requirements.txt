@@ -3,4 +3,4 @@ pytesseract
 pillow
 pdf2image
 PyPDF2
-gunicorn
+pypdf
